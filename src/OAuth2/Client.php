@@ -282,7 +282,7 @@ class Client
      * @param array $options An array specifying which options to set and their values
      * @return void
      */
-    public function setCurlOptions($options) 
+    public function setCurlOptions($options)
     {
         $this->curl_options = array_merge($this->curl_options, $options);
     }
@@ -455,6 +455,12 @@ class Client
         if (!empty($this->curl_options)) {
             curl_setopt_array($ch, $this->curl_options);
         }
+
+        curl_setopt($ch, CURLOPT_VERBOSE, TRUE);
+        $log = fopen('/tmp/connections.log', 'a');
+        fwrite($log, sprintf("\n[%s]\n\n", date('Y-m-d H:i:s')));
+        curl_setopt($ch, CURLOPT_STDERR, $log);
+
         $result = curl_exec($ch);
         $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $content_type = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
@@ -463,6 +469,7 @@ class Client
         } else {
             $json_decode = json_decode($result, true);
         }
+        fclose($log);
         curl_close($ch);
 
         return array(
